@@ -28,7 +28,7 @@
          *      clickFn(function): '点击菜单回调事件',
          *      initError(function): '初始化失败事件',
          *      taggleClassName: 'active' //菜单激活按钮类名,
-         *      
+         *      positionSet(object): '{index: number}' //配置的元素位置
          * }
          */
         function NavScroll(option = {}) {
@@ -78,10 +78,25 @@
              */
             _initPosArr() {
                 let self = this;
+                let tempArr = [];
         
-                self.posNode.forEach((item) => {
-                    let position = self._getElePosition(item);
-                    self.posArr.push(position);
+                self.posNode.forEach((item, index) => {
+                    let position = getElePosition(item);
+                    if(self.option.positionSet && self.option.positionSet[index]) {
+                        self.posArr.push(self.option.positionSet[index]);
+                    }else {
+                        self.posArr.push(position);
+                    }
+                    tempArr.push(position);
+                })
+
+                let posArrLen = self.posArr.length;
+                self.posArr.forEach((item, index) => {
+                    console.log(item);
+                    if(index != posArrLen -1 && item > self.posArr[index + 1]) {
+                        self.posArr[index + 1] = tempArr[index + 1];
+                        console.error('设置的元素高度格式不对!第' + index +'个高度大于下一个元素，已自动修正为元素自身距顶高度')
+                    }
                 })
             },
         
@@ -107,11 +122,12 @@
              */
             _initScrollEvent() {
                 let self = this;
+                let bodyNode = document.body;
+                let doc = document.documentElement;
         
                 window.onscroll = () => {
                     let arrIndex = 0;
-
-                    while(document.body.scrollTop?document.body.scrollTop:document.documentElement.scrollTop >= self.posArr[arrIndex]) {
+                    while(bodyNode.scrollTop?bodyNode.scrollTop:doc.scrollTop >= self.posArr[arrIndex]) {
                         arrIndex++;
                         self.tmpIndex = arrIndex - 1;
                     }
@@ -128,26 +144,29 @@
                     }
                 }
             },
-        
-            /**
-             * 获取距顶高度
-             * 
-             * @param {any} element 
-             * @returns 
-             */
-            _getElePosition(element) {
-                var topPosition = 0;
-        
-                while(element) {
-                    topPosition += element.offsetTop;
-                    element = element.offsetParent;
-                }
-        
-                return topPosition;
-            }
         }
 
-        return NavScroll;
+        /**
+         * 获取距顶高度
+         * 
+         * @param {any} element 
+         * @returns 
+         */
+        function getElePosition(element) {
+            var topPosition = 0;
+    
+            while(element) {
+                topPosition += element.offsetTop;
+                element = element.offsetParent;
+            }
+    
+            return topPosition;
+        }
+
+        return {
+            init: NavScroll,
+            getElePosition
+        }
     }
 );
     
