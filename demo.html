@@ -45,5 +45,9 @@
   window.s = new NavScroll.init({positionSet: {
       3: NavScroll.getElePosition(document.querySelectorAll('.box')[2]) - 50
   }});
+
+  window.onresize = (() => {
+      s.rest();
+  })
 </script>
 </html>

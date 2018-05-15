@@ -30,6 +30,9 @@
          *      taggleClassName: 'active' //菜单激活按钮类名,
          *      positionSet(object): '{index: number}' //配置的元素位置
          * }
+         * 
+         * @returns {function} NavScroll.rest() 重载方法
+         *                     getElePosition() 重载方法
          */
         function NavScroll(option = {}) {
             let self         = this;
@@ -46,7 +49,7 @@
             try {
                 self._init();
             } catch (error) {
-                console.log(error);
+                console.error(error);
                 return option.initError?option.initError():false;
             }
             
@@ -62,6 +65,11 @@
              */
             _init() {
                 let self = this;
+
+                if(self.posNode.length === 0 || self.posNode.length === 0) {
+                    console.error('err: 缺少匹配元素，请配置option.navNode、option.posNode，或者配置option.navQuery和option.posQuery索引')
+                    return false;
+                }
                 if(self.posNode.length != self.navNode.length) {
                     console.error('err: 所选位置与菜单数量不匹配!')
                     return false;
@@ -79,6 +87,8 @@
             _initPosArr() {
                 let self = this;
                 let tempArr = [];
+                let docEle = document.documentElement;
+                let docBody = document.body;
         
                 self.posNode.forEach((item, index) => {
                     let position = getElePosition(item);
@@ -90,6 +100,15 @@
                     tempArr.push(position);
                 })
 
+                //判断最后的元素定位是否低于页面高度，若是自动将触发变换的高度设置为滚动高度-页面高度
+                let lastPageTop =(docEle.scrollHeight?docEle.scrollHeight:docBody.scrollHeight) - window.innerHeight;
+                let lastNode = self.posArr[self.posArr.length - 1];
+                if( lastNode < lastPageTop) {
+                    self.posArr[self.posArr.length - 1] = lastPageTop;
+                }
+
+
+                //判断自定义设置高度是否正常（是否存在上一个高度大于下一个)
                 let posArrLen = self.posArr.length;
                 self.posArr.forEach((item, index) => {
                     console.log(item);
@@ -98,6 +117,8 @@
                         console.error('设置的元素高度格式不对!第' + index +'个高度大于下一个元素，已自动修正为元素自身距顶高度')
                     }
                 })
+
+                console.log()
             },
         
             /**
@@ -124,6 +145,10 @@
                 let self = this;
                 let bodyNode = document.body;
                 let doc = document.documentElement;
+
+                if(self.navNode.length > 0) {
+                    self.navNode[0].classList.add('active');
+                }
         
                 window.onscroll = () => {
                     let arrIndex = 0;
@@ -144,6 +169,15 @@
                     }
                 }
             },
+            
+            /**
+             * rest方法，重载页面事件
+             * 
+             */
+            rest() {
+                let self = this;
+                self._init();
+            }
         }
 
         /**
